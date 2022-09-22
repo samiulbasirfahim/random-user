@@ -7,4 +7,6 @@ router.get("/random", userController.random)
 
 router.get("/all", userController.all)
 
+router.post("/save", userController.save)
+
 export default router

@@ -4,6 +4,8 @@ import config from "./utils/config"
 
 const app: any = express()
 
+app.use(express.json())
+
 app.config = config
 
 app.use("/users", userRouter)
