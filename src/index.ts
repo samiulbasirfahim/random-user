@@ -8,7 +8,7 @@ app.use(express.json())
 
 app.config = config
 
-app.use("/users", userRouter)
+app.use("/user", userRouter)
 
 app.listen(app.config.port, () =>
   console.log(`app listening on port ${app.config.port}`)

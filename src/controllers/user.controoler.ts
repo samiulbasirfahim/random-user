@@ -1,5 +1,8 @@
 import { Request, Response } from "express"
 import usersData from "../data/users.json"
+import path from "path"
+import fs from "fs"
+import { json } from "stream/consumers"
 
 /* funciton for genarate random number */
 const randomNumber = (limit: number): number => {
@@ -19,7 +22,7 @@ const random = (req: Request, res: Response) => {
     res.json(usersData[randomNumber(usersData.length)])
   } catch (error) {
     res.status(500)
-    res.end("Something wrong here")
+    res.json({ message: "Something went wrong", status: false })
   }
 }
 
@@ -27,49 +30,84 @@ const random = (req: Request, res: Response) => {
 const all = (req: Request, res: Response) => {
   try {
     res.header({ "Content-type": "application/json" })
-    res.status(200)
-    res.json(usersData)
+    res.json(usersData).status(200)
   } catch (error) {
-    res.status(500)
-    res.end("Something wrong here")
+    res.json({ message: "Something went wrong", status: false }).status(500)
   }
 }
 
+/* for add a user */
 const save = (req: Request, res: Response) => {
   try {
-    const userDetails = req.body
-    userDetails.id = usersData.length + 1
+    let userDetails = req.body
+    const id = usersData.length + 1
+    userDetails = { id, ...userDetails }
+    res.header({ "Content-type": "application/json" })
     if (!userDetails.name) {
-      res.status(204)
-      res.end("Name is required")
+      res
+        .json({
+          message: "User name is required",
+          status: false,
+        })
+        .status(204)
     } else if (!userDetails.gender) {
-      res.status(204)
-      res.end("Gender is required")
+      res
+        .json({
+          message: "User gender is required",
+          status: false,
+        })
+        .status(204)
     } else if (!userDetails.contact) {
-      res.status(204)
-      res.end("Contact is missing")
+      res
+        .json({
+          message: "User contact is required",
+          status: false,
+        })
+        .status(204)
     } else if (!userDetails.photoUrl) {
-      res.status(204)
-
-      res.end("Photo url is required")
+      res
+        .json({
+          message: "User photo url is required",
+          status: false,
+        })
+        .status(204)
     } else if (!userDetails.address) {
-      res.status(204)
-      res.end("address is required")
+      res
+        .json({
+          message: "User address is required",
+          status: false,
+        })
+        .status(204)
     } else {
-      try {
-        usersData.push(userDetails)
-        res.status(200)
-        res.end("data save succesuflly")
-      } catch (error) {
-        if (error) {
-          res.status(500)
-          res.end("Something wrong here")
+      const pathName = path.join(__dirname, "../data/users.json")
+      usersData.push(userDetails)
+      fs.writeFile(pathName, JSON.stringify(usersData), (err) => {
+        if (err) {
+          console.log(err)
+        } else {
+          res.status(200).json({
+            message: "data added succesfully",
+            status: false,
+          })
         }
-      }
+      })
     }
   } catch (error) {
-    res.status(500)
-    res.end("Something wrong here")
+    res.header({ "Content-type": "application/json" })
+    res.json({ message: "Something went wrong", status: false }).status(500)
+  }
+}
+
+/* for update a user */
+const update = (req: Request, res: Response) => {
+  const user = usersData.find((user) => user.id === Number(req.params.id))
+  if (!user) {
+    res
+      .json({
+        message: "User not found",
+        status: false,
+      })
+      .status(404)
   }
 }
 
@@ -77,4 +115,5 @@ export default {
   random,
   all,
   save,
+  update,
 }

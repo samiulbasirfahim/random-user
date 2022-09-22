@@ -9,4 +9,6 @@ router.get("/all", userController.all)
 
 router.post("/save", userController.save)
 
+router.patch("/update/:id", userController.update)
+
 export default router
