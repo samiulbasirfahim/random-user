@@ -83,11 +83,14 @@ const save = (req: Request, res: Response) => {
       usersData.push(userDetails)
       fs.writeFile(pathName, JSON.stringify(usersData), (err) => {
         if (err) {
-          console.log(err)
+          res.status(500).json({
+            message: "Something went wrong",
+            status: false,
+          })
         } else {
           res.status(200).json({
             message: "data added succesfully",
-            status: false,
+            status: true,
           })
         }
       })
@@ -100,14 +103,43 @@ const save = (req: Request, res: Response) => {
 
 /* for update a user */
 const update = (req: Request, res: Response) => {
-  const user = usersData.find((user) => user.id === Number(req.params.id))
-  if (!user) {
-    res
-      .json({
-        message: "User not found",
-        status: false,
+  try {
+    const userFromClient = req.body
+    const userId = req.params.id
+    const targetUser = usersData.find((u) => u.id === Number(userId))
+    const restUser = usersData.filter((u) => u.id !== Number(userId))
+    const updatedUser = { ...targetUser, ...userFromClient }
+
+    const updatedUserList = [...restUser, updatedUser]
+
+    if (!targetUser) {
+      res
+        .json({
+          message: "User not found",
+          status: false,
+        })
+        .status(404)
+    } else {
+      const pathName = path.join(__dirname, "../data/users.json")
+      fs.writeFile(pathName, JSON.stringify(updatedUserList), (err) => {
+        if (err) {
+          res.header({ "Content-type": "application/json" })
+          res
+            .json({ message: "Something went wrong", status: false })
+            .status(500)
+        } else {
+          res
+            .json({
+              message: "Updated succesfully",
+              status: true,
+            })
+            .status(200)
+        }
       })
-      .status(404)
+    }
+  } catch (error) {
+    res.header({ "Content-type": "application/json" })
+    res.json({ message: "Something went wrong", status: false }).status(500)
   }
 }
 
