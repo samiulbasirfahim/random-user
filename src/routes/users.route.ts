@@ -7,6 +7,7 @@ const router = express.Router()
 router.get("/random", userController.random)
 
 // @route get all user /user/all *method=get
+// also you can use query string limit for limit return data
 router.get("/all", userController.all)
 
 // @route add user /user/save *method=post

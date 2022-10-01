@@ -1,8 +1,7 @@
 import { Request, Response } from "express"
 import usersData from "../data/users.json"
-import path, { resolve } from "path"
+import path from "path"
 import fs from "fs"
-import { json } from "stream/consumers"
 
 /* funciton for genarate random number */
 const randomNumber = (limit: number): number => {
@@ -29,6 +28,12 @@ const random = (req: Request, res: Response) => {
 /* for get all users */
 const all = (req: Request, res: Response) => {
   try {
+    const limit: number = parseInt(req.query.limit as string)
+    if (limit) {
+      const newUserData = usersData.slice(0, limit)
+      res.header({ "Content-type": "application/json" })
+      return res.json(newUserData).status(200)
+    }
     res.header({ "Content-type": "application/json" })
     res.json(usersData).status(200)
   } catch (error) {
@@ -105,6 +110,12 @@ const save = (req: Request, res: Response) => {
 const update = (req: Request, res: Response) => {
   try {
     const userFromClient = req.body
+    if (!userFromClient) {
+      res.header({ "Content-type": "application/json" })
+      return res
+        .json({ message: "body is required", status: false })
+        .status(500)
+    }
     const userId = req.params.id
     const targetUser = usersData.find((u) => u.id === Number(userId))
     const restUser = usersData.filter((u) => u.id !== Number(userId))
