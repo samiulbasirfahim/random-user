@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import usersData from "../data/users.json"
-import path from "path"
+import path, { resolve } from "path"
 import fs from "fs"
 import { json } from "stream/consumers"
 
@@ -143,9 +143,69 @@ const update = (req: Request, res: Response) => {
   }
 }
 
+const getOne = (req: Request, res: Response) => {
+  try {
+    const id: number | string = req.params.id
+    if (!id) {
+      res.header({ "Content-type": "application/json" })
+      return res
+        .json({ message: "You should provide user id", status: false })
+        .status(500)
+    }
+    const user = usersData.find((user) => user.id.toString() === id)
+    if (user) {
+      res.header({ "Content-type": "application/json" })
+      res.json(user).status(200)
+    } else {
+      res.header({ "Content-type": "application/json" })
+      res.json({ message: "user not found", status: false }).status(404)
+    }
+  } catch (error) {
+    res.header({ "Content-type": "application/json" })
+    res.json({ message: "Something went wrong", status: false }).status(500)
+  }
+}
+
+const deleteUser = (req: Request, res: Response) => {
+  try {
+    const id: any = req.params.id
+    if (!id) {
+      res.header({ "Content-type": "application/json" })
+      return res
+        .json({ message: "You should provide user id", status: false })
+        .status(500)
+    }
+    const user = usersData.find((user) => user.id.toString() === id)
+    if (!user) {
+      res.header({ "Content-type": "application/json" })
+      return res.json({ message: "user not found", status: false }).status(404)
+    }
+    const availableUsers = usersData.filter((user) => user.id.toString() !== id)
+    const pathName = path.join(__dirname, "../data/users.json")
+    fs.writeFile(pathName, JSON.stringify(availableUsers), (err) => {
+      if (err) {
+        res.header({ "Content-type": "application/json" })
+        res.json({ message: "Something went wrong", status: false }).status(500)
+      } else {
+        res
+          .json({
+            message: "Deleted succesfully",
+            status: true,
+          })
+          .status(200)
+      }
+    })
+  } catch (error) {
+    res.header({ "Content-type": "application/json" })
+    res.json({ message: "Something went wrong", status: false }).status(500)
+  }
+}
+
 export default {
   random,
   all,
   save,
   update,
+  getOne,
+  deleteUser,
 }
